@@ -1,0 +1,22 @@
+# Terraform
+.terraform/
+# Note: .terraform.lock.hcl is intentionally committed for reproducible provider versions
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+terraform.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+crash.log
+crash.*.log
+
+# Kiro
+.kiro/
+
+# OS
+.DS_Store
+Thumbs.db

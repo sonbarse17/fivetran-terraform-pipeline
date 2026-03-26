@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────
+# Fivetran Auth (required)
+# ─────────────────────────────────────────────
+fivetran_api_key    = ""
+fivetran_api_secret = ""
+group_id            = ""
+
+# ─────────────────────────────────────────────
+# Destination — General (required)
+# Options:
+#   AWS  → postgres_rds_warehouse | snowflake
+#   Azure → azure_sql_warehouse | azure_sql_managed_instance
+# ─────────────────────────────────────────────
+destination_service = "postgres_rds_warehouse"
+
+# AWS regions  : US_EAST_1, US_WEST_2, EU_WEST_1, AP_SOUTHEAST_2
+# Azure regions: AZURE_EAST_US, AZURE_WEST_US, AZURE_WEST_EUROPE, AZURE_SOUTHEAST_ASIA
+region           = "US_EAST_1"
+time_zone_offset = "0"
+run_setup_tests  = true
+
+# ─────────────────────────────────────────────
+# Destination — AWS PostgreSQL / RDS
+# Required when destination_service = postgres_rds_warehouse
+# connection_type options: Directly | SshTunnel | PrivateLink
+# ─────────────────────────────────────────────
+db_host         = ""   # e.g. mydb.abc123.us-east-1.rds.amazonaws.com
+db_port         = 5432
+db_name         = ""
+db_user         = ""
+db_password     = ""
+connection_type = "Directly"
+
+# SSH Tunnel — populate only when connection_type = SshTunnel
+# tunnel_host = ""   # bastion host public IP or DNS
+# tunnel_port = 22
+# tunnel_user = "ec2-user"
+
+# ─────────────────────────────────────────────
+# Destination — AWS Snowflake
+# Required when destination_service = snowflake
+# ─────────────────────────────────────────────
+# snowflake_account   = ""   # e.g. xy12345.us-east-1
+# snowflake_database  = ""
+# snowflake_warehouse = ""
+# snowflake_role      = ""
+# snowflake_user      = ""
+# snowflake_password  = ""
+
+# ─────────────────────────────────────────────
+# Destination — Azure SQL / Synapse Analytics
+# Required when destination_service = azure_sql_warehouse
+#           or destination_service = azure_sql_managed_instance
+# ─────────────────────────────────────────────
+# azure_sql_server   = ""   # e.g. myserver.database.windows.net
+# azure_sql_database = ""
+# azure_sql_user     = ""
+# azure_sql_password = ""
+# azure_sql_port     = 1433
+
+# ─────────────────────────────────────────────
+# Connectors
+# Add one object per connector you want to create.
+# ─────────────────────────────────────────────
+connectors = [
+  {
+    name           = "jsonplaceholder"
+    service        = "webhooks"
+    schema_name    = "jsonplaceholder_users"
+    sync_frequency = 60
+    paused         = false
+  },
+  # Example: add a second connector
+  # {
+  #   name           = "salesforce"
+  #   service        = "salesforce"
+  #   schema_name    = "salesforce_crm"
+  #   sync_frequency = 360
+  #   paused         = true
+  # },
+]
