@@ -83,30 +83,186 @@ Supported destinations:
 
 ## 2. Prerequisites
 
-| Tool | Minimum Version | Install |
-|---|---|---|
-| Terraform | 1.3+ | https://developer.hashicorp.com/terraform/install |
-| Fivetran account | Any paid or trial plan | https://fivetran.com |
-| AWS CLI (if using AWS) | 2.x | https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html |
-| Azure CLI (if using Azure) | 2.x | https://learn.microsoft.com/en-us/cli/azure/install-azure-cli |
+Complete every item in this section before running any Terraform commands.
 
-Verify Terraform is installed:
+---
 
+### 2.1 Required Tools
+
+| Tool | Minimum Version | Purpose | Install |
+|---|---|---|---|
+| Terraform | 1.3+ | Provision all infrastructure | https://developer.hashicorp.com/terraform/install |
+| Git | 2.x | Clone the repo | https://git-scm.com/downloads |
+| AWS CLI | 2.x | Manage AWS resources (RDS, S3, IAM) | https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html |
+| Azure CLI | 2.x | Manage Azure resources (SQL, Storage) | https://learn.microsoft.com/en-us/cli/azure/install-azure-cli |
+| psql | 14+ | Connect to PostgreSQL / RDS to run setup SQL | https://www.postgresql.org/download |
+| jq | 1.6+ | Parse Terraform JSON outputs in shell scripts | https://stedolan.github.io/jq/download |
+
+> You only need AWS CLI **or** Azure CLI depending on your chosen destination.
+
+---
+
+### 2.2 Install Terraform
+
+**macOS (Homebrew):**
+```bash
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
+```
+
+**Ubuntu / Debian:**
+```bash
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | \
+  sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+  https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+  sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt-get update && sudo apt-get install terraform
+```
+
+**Windows (Chocolatey):**
+```powershell
+choco install terraform
+```
+
+Verify:
 ```bash
 terraform version
+# Terraform v1.x.x
 ```
+
+---
+
+### 2.3 Install AWS CLI (AWS destinations only)
+
+**macOS:**
+```bash
+brew install awscli
+```
+
+**Linux:**
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip && sudo ./aws/install
+```
+
+**Windows:**
+Download and run: https://awscli.amazonaws.com/AWSCLIV2.msi
+
+Configure with your credentials:
+```bash
+aws configure
+# AWS Access Key ID:     <your-access-key>
+# AWS Secret Access Key: <your-secret-key>
+# Default region name:   us-east-1
+# Default output format: json
+```
+
+Verify:
+```bash
+aws sts get-caller-identity
+```
+
+---
+
+### 2.4 Install Azure CLI (Azure destinations only)
+
+**macOS:**
+```bash
+brew install azure-cli
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+```
+
+**Windows:**
+Download and run: https://aka.ms/installazurecliwindows
+
+Log in and set your subscription:
+```bash
+az login
+az account set --subscription "<your-subscription-id>"
+az account show   # confirm correct subscription is active
+```
+
+---
+
+### 2.5 Fivetran Account
+
+- Sign up or log in at https://fivetran.com
+- You need a **paid plan or active trial** — the free tier does not support API-based provisioning
+- Ensure your account has permission to create **Destinations** and **Connectors**
+- You will need your **API Key** and **API Secret** (generated in Step 1)
+
+---
+
+### 2.6 Destination Database Access
+
+Depending on your chosen destination, you need one of the following already provisioned
+and reachable before running `terraform apply`:
+
+| Destination | What you need ready |
+|---|---|
+| AWS PostgreSQL / RDS | Running RDS instance, master credentials, security group ID |
+| AWS Snowflake | Snowflake account on AWS, admin login to run setup SQL |
+| Azure SQL / Synapse | Azure SQL server created, admin login, resource group name |
+
+> Terraform provisions the **Fivetran resources** (destination config, connector, schedule).
+> It does not create the underlying database server itself — that must exist first.
+
+---
+
+### 2.7 Network Access
+
+Fivetran's servers must be able to reach your destination database.
+Before applying, ensure:
+
+- Fivetran's IP ranges are allowlisted in your firewall / security group / NSG
+- Full IP list: https://fivetran.com/docs/using-fivetran/fivetran-ip-addresses
+- For private databases, set up an SSH tunnel or PrivateLink first (see [Networking Options](#14-networking-options))
+
+---
+
+### 2.8 Clone the Repository
+
+```bash
+git clone https://github.com/sonbarse17/fivetran-terraform-pipeline.git
+cd fivetran-terraform-pipeline/iac/fivetran-pipeline
+```
+
+---
+
+### 2.9 Quick Prerequisites Checklist
+
+Before moving to Step 1, confirm all of the following:
+
+- [ ] Terraform 1.3+ installed and `terraform version` returns successfully
+- [ ] Git installed
+- [ ] AWS CLI configured (`aws sts get-caller-identity` works) — if using AWS
+- [ ] Azure CLI logged in (`az account show` works) — if using Azure
+- [ ] Fivetran account active with API access
+- [ ] Destination database server is running and reachable
+- [ ] Fivetran IP ranges allowlisted in your firewall / security group
+- [ ] Repository cloned locally
 
 ---
 
 ## 3. Project Structure
 
 ```
-iac/fivetran-pipeline/
-├── main.tf                   # Provider, destination, connectors, schedules
-├── variables.tf              # All input variables with types, descriptions, defaults
-├── outputs.tf                # destination_id, connector_ids, schemas
-├── terraform.tfvars.example  # Template — copy to terraform.tfvars and fill in values
-└── README.md                 # This guide
+fivetran-terraform-pipeline/        ← repo root
+├── README.md                       # This guide (rendered on GitHub)
+├── .gitignore
+└── iac/
+    └── fivetran-pipeline/
+        ├── main.tf                 # Provider, destination, connectors, schedules
+        ├── variables.tf            # All input variables with types, descriptions, defaults
+        ├── outputs.tf              # destination_id, connector_ids, schemas
+        ├── terraform.tfvars.example # Template — copy to terraform.tfvars and fill in values
+        └── .terraform.lock.hcl    # Pinned provider version (committed for reproducibility)
 ```
 
 ---
