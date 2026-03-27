@@ -221,7 +221,7 @@ Fivetran's servers must be able to reach your destination database.
 Before applying, ensure:
 
 - Fivetran's IP ranges are allowlisted in your firewall / security group / NSG
-- Full IP list: https://fivetran.com/docs/using-fivetran/fivetran-ip-addresses
+- Full IP list: https://fivetran.com/docs/using-fivetran/ips
 - For private databases, set up an SSH tunnel or PrivateLink first (see [Networking Options](#14-networking-options))
 
 ---
@@ -371,7 +371,7 @@ aws ec2 authorize-security-group-ingress \
   --cidr 52.0.2.4/32
 ```
 
-Full Fivetran IP list: https://fivetran.com/docs/using-fivetran/fivetran-ip-addresses
+Full Fivetran IP list: https://fivetran.com/docs/using-fivetran/ips
 
 Variables you will need:
 ```hcl
@@ -455,7 +455,7 @@ az sql server firewall-rule create \
   --end-ip-address 52.0.2.4
 ```
 
-Full Fivetran IP list: https://fivetran.com/docs/using-fivetran/fivetran-ip-addresses
+Full Fivetran IP list: https://fivetran.com/docs/using-fivetran/ips
 
 Variables you will need:
 ```hcl
