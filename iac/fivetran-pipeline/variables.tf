@@ -205,7 +205,7 @@ variable "connectors" {
   default = [
     {
       name           = "jsonplaceholder"
-      service        = "webhooks"
+      service        = "connector_sdk"
       schema_name    = "jsonplaceholder_users"
       sync_frequency = 60
       paused         = false
