@@ -253,17 +253,31 @@ Before moving to Step 1, confirm all of the following:
 ## 3. Project Structure
 
 ```
-fivetran-terraform-pipeline/        ← repo root
-├── README.md                       # This guide (rendered on GitHub)
+fivetran-terraform-pipeline/         <- repo root
+├── README.md                        # This guide (rendered on GitHub)
 ├── .gitignore
+├── connector/                       # Fivetran Connector SDK - data sync script
+│   ├── connector.py                 # Fetches users from REST API, upserts to destination
+│   └── requirements.txt             # Python dependencies (requests)
 └── iac/
     └── fivetran-pipeline/
-        ├── main.tf                 # Provider, destination, connectors, schedules
-        ├── variables.tf            # All input variables with types, descriptions, defaults
-        ├── outputs.tf              # destination_id, connector_ids, schemas
-        ├── terraform.tfvars.example # Template — copy to terraform.tfvars and fill in values
-        └── .terraform.lock.hcl    # Pinned provider version (committed for reproducibility)
+        ├── main.tf                  # Provider, destination, connectors, schedules
+        ├── variables.tf             # All input variables with types, descriptions, defaults
+        ├── outputs.tf               # destination_id, connector_ids, schemas
+        ├── terraform.tfvars.example # Template - copy to terraform.tfvars and fill in values
+        └── .terraform.lock.hcl     # Pinned provider version (committed for reproducibility)
 ```
+
+### What each file does
+
+| File | Purpose |
+|---|---|
+| `connector/connector.py` | Python script Fivetran runs on every sync. Calls the JSONPlaceholder API, flattens nested address and company fields, upserts rows into the destination. |
+| `connector/requirements.txt` | Python dependencies installed by Fivetran before running the script. |
+| `iac/fivetran-pipeline/main.tf` | Declares the Fivetran provider, destination, connector, and schedule resources. |
+| `iac/fivetran-pipeline/variables.tf` | All input variables - credentials, destination type, region, connector list. |
+| `iac/fivetran-pipeline/outputs.tf` | Outputs destination_id, connector_ids, connector_schemas after apply. |
+| `iac/fivetran-pipeline/terraform.tfvars.example` | Copy this to terraform.tfvars and fill in your values. Never commit terraform.tfvars. |
 
 ---
 
