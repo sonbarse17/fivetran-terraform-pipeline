@@ -281,23 +281,60 @@ You will use these as `fivetran_api_key` and `fivetran_api_secret`.
 
 ## 5. Step 2 — Get Your Fivetran Group ID
 
-A Fivetran Group is the organisational container for your connectors and destination.
+A Fivetran **Group** is the organisational container (workspace) that holds your
+destinations and connectors. Every Fivetran account has at least one group created
+automatically — you do **not** need to add a destination first to get the group ID.
 
-**Option A — Use an existing group:**
-1. In the Fivetran dashboard, go to **Destinations**
-2. Click the destination you want to use
-3. The URL contains the group ID: `https://fivetran.com/dashboard/destinations/<GROUP_ID>`
+---
 
-**Option B — Create a new group via the Fivetran API:**
+### The easiest way — read it from the URL
+
+When you click **Destinations** → **Add destination** in the Fivetran dashboard, look at
+the browser URL bar:
+
+```
+https://fivetran.com/dashboard/add-destination?groupId=narrowest_settler
+                                                         ^^^^^^^^^^^^^^^^
+                                                         this is your group_id
+```
+
+The value after `groupId=` in the URL is your group ID. Copy it directly into
+`terraform.tfvars`:
+
+```hcl
+group_id = "narrowest_settler"   # replace with your actual value from the URL
+```
+
+> Your group ID will be a short hyphenated word pair like `narrowest_settler`,
+> `bright_compass`, etc. — Fivetran auto-generates these names.
+
+---
+
+### Option B — Find it via the Fivetran API
+
+```bash
+curl -s https://api.fivetran.com/v1/groups \
+  -H "Authorization: Basic $(echo -n '<API_KEY>:<API_SECRET>' | base64)" \
+  | jq '.data.items[] | {id, name}'
+```
+
+This lists all groups in your account with their IDs and names.
+
+---
+
+### Option C — Create a brand new group
+
+If you want a fresh isolated group for this pipeline:
 
 ```bash
 curl -X POST https://api.fivetran.com/v1/groups \
   -H "Authorization: Basic $(echo -n '<API_KEY>:<API_SECRET>' | base64)" \
   -H "Content-Type: application/json" \
-  -d '{"name": "demo-pipeline"}'
+  -d '{"name": "fivetran-demo-pipeline"}'
 ```
 
-The response `"id"` field is your `group_id`.
+The `"id"` field in the response is your new `group_id`. Terraform will then create
+the destination and connectors inside this group when you run `terraform apply`.
 
 ---
 
